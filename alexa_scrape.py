@@ -30,6 +30,7 @@ def get_site(url):
 
 def get_top_keywords(soup):
 	topkw_div = soup.find("div", { "class" : "topkw" })
+	if not topkw_div: return None
 	topkw_list = [kw.text for kw in topkw_div.find_all("span", { "class" : "truncation" })]
 	chunks = [topkw_list[x:x+3] for x in range(0, len(topkw_list), 3)]
 	
@@ -46,8 +47,16 @@ def get_top_keywords(soup):
 
 def get_similar_sites(soup):
 	ss_div = soup.find("div", { "class" : "audience" })
+	if not ss_div: return None
 	sites_list = [site.text for site in ss_div.find_all("a", { "class" : "truncation" })]
-	sites_overlap = [ float(overlap.text.replace(',', '')) for overlap in ss_div.find_all("span", { "class" : "truncation" })]
+	sites_overlap = [ overlap.text.replace(',', '') for overlap in ss_div.find_all("span", { "class" : "truncation" })]
+
+	for site_overlap in sites_overlap:
+		try:
+			site_overlap = float(site_overlap)
+		except ValueError:
+			site_overlap = None
+
 	ss_dict = {}
 	
 	for i in range(0, len(sites_list)):
@@ -60,6 +69,7 @@ def get_similar_sites(soup):
 
 def get_geography(soup):
 	geo_div = soup.find("div", { "class" : "geography" })
+	if not geo_div: return None
 	country_list = geo_div.find_all("li")
 	country_dict = {}
 
@@ -71,6 +81,15 @@ def get_geography(soup):
 	return country_dict
 
 def get_engagement(soup):
+
+	engagement_div = soup.find("section", { "class" : "engagement" })
+	if not engagement_div: return None
+	engagement_metrics = engagement_div.find_all("p", { "class" : "data" })
+	metrics_text = [metric.text for metric in engagement_metrics]
+	
+	pageviews = metrics_text[0].split(' ')
+	time_on_site = metrics_text[1].split(' ')
+	bounce_rate = metrics_text[2].split(' ')
 
 	engagement_dict = { 
 		'pageviews' : { 
@@ -86,13 +105,6 @@ def get_engagement(soup):
 			'delta' : None
 		}
 	}
-	engagement_div = soup.find("section", { "class" : "engagement" })
-	engagement_metrics = engagement_div.find_all("p", { "class" : "data" })
-	metrics_text = [metric.text for metric in engagement_metrics]
-	
-	pageviews = metrics_text[0].split(' ')
-	time_on_site = metrics_text[1].split(' ')
-	bounce_rate = metrics_text[2].split(' ')
 
 	for l in [pageviews, time_on_site, bounce_rate]:
 		for i in l:
