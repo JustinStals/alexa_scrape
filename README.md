@@ -1,7 +1,7 @@
 # alexa_scrape
 Scrape key company data from Alexa.com
 
-##Data points:
+## Data points:
 
 Top Keywords - Top organic keywords that are driving traffic to this site.
 
